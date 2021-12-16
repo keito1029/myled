@@ -20,7 +20,7 @@ static volatile u32 *gpio_base = NULL;  //アドレスをマッピングする�
 //led_writeを次のように書き換え
 static ssize_t led_write(struct file* filp, const char* buf, size_t count, loff_t* pos)
 {
-char c;   //読み込んだ字を入れる変数
+    char c;   //読み込んだ字を入れる変数
     if(copy_from_user(&c,buf,sizeof(char)))
     return -EFAULT; //失敗した時に正の値になるため判定を逆転
   
