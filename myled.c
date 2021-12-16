@@ -20,51 +20,51 @@ static volatile u32 *gpio_base = NULL;  //アドレスをマッピングする�
 //led_writeを次のように書き換え
 static ssize_t led_write(struct file* filp, const char* buf, size_t count, loff_t* pos)
 {
- char c;   //読み込んだ字を入れる変数
- if(copy_from_user(&c,buf,sizeof(char)))
-	 return -EFAULT; //失敗した時に正の値になるため判定を逆転
-
+	char c;   //読み込んだ字を入れる変数
+    if(copy_from_user(&c,buf,sizeof(char)))
+  	return -EFAULT; //失敗した時に正の値になるため判定を逆転
+  
     if(c == 'q'){ //0と打ったら
         gpio_base[10] = 1 << 25; //受け取った場所はセンサ値のビットなので，GPIO25が機能するビットにするために10回シフトする
         gpio_base[10] = 1 << 24;
         gpio_base[10] = 1 << 23;
-	}
-	else if(c == 'r'){
+   	}
+   	else if(c == 'r'){
         gpio_base[7] = 1 << 25;
         gpio_base[10] = 1 << 24;
         gpio_base[10] = 1 << 23;
-	}
-	else if(c == 'b'){
+   	}
+   	else if(c == 'b'){
         gpio_base[7] = 1 << 24;
         gpio_base[10] = 1 << 23;
         gpio_base[10] = 1 << 25;
-	}	
-	else if(c == 'g'){
+   	}	
+   	else if(c == 'g'){
         gpio_base[7] = 1 << 23;
         gpio_base[10] = 1 << 24;
         gpio_base[10] = 1 << 25;
-	}
-	else if(c == 'p'){
+   	}
+   	else if(c == 'p'){
         gpio_base[7] = 1 << 25;
         gpio_base[7] = 1 << 24;
         gpio_base[10] = 1 << 23;
-	}
-	else if(c == 'y'){
+   	}
+   	else if(c == 'y'){
         gpio_base[7] = 1 << 23;
         gpio_base[7] = 1 << 25;
         gpio_base[10] = 1 << 24;
-	}	
-	else if(c == 'l'){
+   	}	
+   	else if(c == 'l'){
         gpio_base[7] = 1 << 23;
         gpio_base[7] = 1 << 24;
         gpio_base[10] = 1 << 25;
-	}
-	else if(c == 'w'){
+   	}
+   	else if(c == 'w'){
         gpio_base[7] = 1 << 23;
         gpio_base[7] = 1 << 24;
         gpio_base[7] = 1 << 25;
-	}
-    return 1;
+     }
+     return 1;
 }
 
 
@@ -72,19 +72,19 @@ static ssize_t led_write(struct file* filp, const char* buf, size_t count, loff_
 static ssize_t sushi_read(struct file* filp, char* buf, size_t count, loff_t* pos)
 {
     int size = 0;
-     char sushi[] = {0xF0,0x9F,0x8D,0xA3,0x0A}; //寿司の絵文字のバイナリ
-     if(copy_to_user(buf+size,(const char *)sushi, sizeof(sushi))){
+    char sushi[] = {0xF0,0x9F,0x8D,0xA3,0x0A}; //寿司の絵文字のバイナリ
+    if(copy_to_user(buf+size,(const char *)sushi, sizeof(sushi))){
         printk( KERN_INFO "sushi : copy_to_user failed\n" );
-     return -EFAULT;
-     }
-     size += sizeof(sushi);
+    return -EFAULT;
+    }
+    size += sizeof(sushi);
     return size;
 }
 
 static struct file_operations led_fops = {
-     .owner = THIS_MODULE,
-     .write = led_write,
-     .read = sushi_read //デバイスファイルが読める様になる
+    .owner = THIS_MODULE,
+    .write = led_write,
+    .read = sushi_read //デバイスファイルが読める様になる
 };
 
 static int __init init_mod(void)
@@ -120,32 +120,32 @@ static int __init init_mod(void)
         printk(KERN_ERR "alloc_chrdev_region failed.\n");
         return retval;
     }
-        printk(KERN_INFO "%s is loaded. major:%d\n",__FILE__,MAJOR(dev));
+    printk(KERN_INFO "%s is loaded. major:%d\n",__FILE__,MAJOR(dev));
 
-        cdev_init(&cdv, &led_fops);
-        retval = cdev_add(&cdv, dev, 1);
-        if(retval < 0){
-                printk(KERN_ERR "cdev_add failed. major:%d, minor:%d",MAJOR(dev),MINOR(dev));
-                return retval;
-        }
+    cdev_init(&cdv, &led_fops);
+    retval = cdev_add(&cdv, dev, 1);
+    if(retval < 0){
+        printk(KERN_ERR "cdev_add failed. major:%d, minor:%d",MAJOR(dev),MINOR(dev));
+        return retval;
+    }
 
-        cls = class_create(THIS_MODULE,"myled");
-        if(IS_ERR(cls)){
-                printk(KERN_ERR "class_create failed.");
-                return PTR_ERR(cls);
-        }
-        device_create(cls, NULL, dev, NULL, "myled%d",MINOR(dev));//デバイスファイルの名前 myled0になる
-        return 0;
+    cls = class_create(THIS_MODULE,"myled");
+    if(IS_ERR(cls)){
+        printk(KERN_ERR "class_create failed.");
+        return PTR_ERR(cls);
+    }
+    device_create(cls, NULL, dev, NULL, "myled%d",MINOR(dev));//デバイスファイルの名前 myled0になる
+    return 0;
 }
 
 
 static void __exit cleanup_mod(void)
 {
-        cdev_del(&cdv);
-		device_destroy(cls, dev);
-        class_destroy(cls);  //追加
-        unregister_chrdev_region(dev, 1);
-        printk(KERN_INFO "%s is unloaded. major:%d\n",__FILE__,MAJOR(dev));
+    cdev_del(&cdv);
+	device_destroy(cls, dev);
+    class_destroy(cls);  //追加
+    unregister_chrdev_region(dev, 1);
+    printk(KERN_INFO "%s is unloaded. major:%d\n",__FILE__,MAJOR(dev));
 }
 
 
